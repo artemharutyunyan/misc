@@ -35,6 +35,10 @@ public class PercolationStats {
   * @param T number of experiments 
   */
   public PercolationStats(int N, int T) {
+     if (N < 1 || T < 1)
+        throw new IllegalArgumentException("illegal input parameters");
+
+
     threshold = new double[T];
     nTrials = T;
 
@@ -47,7 +51,7 @@ public class PercolationStats {
         int row = StdRandom.uniform(1, N + 1);
         int column = StdRandom.uniform(1, N + 1);
       
-        if (p.isFull(row, column)) {
+        if (!p.isOpen(row, column)) {
           //StdOut.printf("Openning row: %d column: %d\n", row, column);
           p.open(row, column);
           ++counter;

@@ -27,10 +27,12 @@ For more information, please refer to <http://unlicense.org/>
 
 public class Percolation {
   private boolean[]  grid; // grid of sites 
-  private WeightedQuickUnionUF uf;  // union-find object 
+  private WeightedQuickUnionUF ufPercolates;  // union-find object (percolates) 
+  private WeightedQuickUnionUF ufFull;  // union-find object (isFull)
   private int N; // Size of a grid 
   private int sourceIndex; // Index of the source site 
-
+  private int sinkIndex; // Index of the source site 
+    
   /**
    * Constructor. Creates and N-by-N grid, with all sites blocked. 
    * @param N size of a grid
@@ -42,13 +44,18 @@ public class Percolation {
     for (int i = 0; i < N*N; ++i)
       grid[i] = false;
     
-    /* Initialize the union-find object. Using an extra element as a 
-     * virtual node to which all top row elements are connected */  
-    uf = new WeightedQuickUnionUF(N*N + 1); 
-    
-    sourceIndex = N*N;
-  }
+    /* Initialize the union-find object. Using two extra elements as  
+     * virtual nodes to which all top row elements are connected. This
+     * object will be used to check whether the system percolates. */  
+    ufPercolates = new WeightedQuickUnionUF(N*N + 2);
+    /* Another UF object (with only top virtual node) to deal with 
+     * backwashing. This object will be used to check whether the site 
+     * is full. */
+    ufFull = new WeightedQuickUnionUF(N*N + 1); 
   
+    sourceIndex = N*N;
+    sinkIndex = sourceIndex + 1;
+  }
   /**
    * Opens the site (row i, column j) if it is not already. 
    * @throws java.lang.IndexOutOfBoundsException if either i or j are out 
@@ -62,26 +69,37 @@ public class Percolation {
     /* Connect this site to open adjacent sites */
     
     /* Up */
-    if (i == 1) 
-      uf.union(siteIndex, sourceIndex); // Union with source 
+    if (i == 1) { 
+      // Union with both sources 
+      ufPercolates.union(siteIndex, sourceIndex); 
+      ufFull.union(siteIndex, sourceIndex); 
+    }
     else 
-    if (i != 1 && isOpen(i - 1, j))
-      uf.union(siteIndex, coord2index(i-1, j));
-    
+    if (i != 1 && isOpen(i - 1, j)) {
+      ufPercolates.union(siteIndex, coord2index(i-1, j));
+      ufFull.union(siteIndex, coord2index(i-1, j));
+    }
+
     /* Left */
-    if (j != 1 && isOpen(i, j - 1))
-      uf.union(siteIndex, coord2index(i, j - 1));
-    
+    if (j != 1 && isOpen(i, j - 1)) {
+      ufPercolates.union(siteIndex, coord2index(i, j - 1));
+      ufFull.union(siteIndex, coord2index(i, j - 1));
+    }
+
     /* Right */
-    if (j != N && isOpen(i, j + 1))
-      uf.union(siteIndex, coord2index(i, j + 1));
-    
+    if (j != N && isOpen(i, j + 1)) {
+      ufPercolates.union(siteIndex, coord2index(i, j + 1));
+      ufFull.union(siteIndex, coord2index(i, j + 1));
+    }
+
     /* Down */
-    //if (i == N)  
-    //  uf.union(siteIndex, sinkIndex); // Union with sink
-    //else 
-    if (i != N && isOpen(i + 1, j))
-      uf.union(siteIndex, coord2index(i+1, j));    
+    if (i == N)  
+      ufPercolates.union(siteIndex, sinkIndex); // Union with sink
+    else 
+    if (i != N && isOpen(i + 1, j)) {
+      ufPercolates.union(siteIndex, coord2index(i+1, j));
+      ufFull.union(siteIndex, coord2index(i+1, j));
+    }
   }
   /**
    * Checks whether site (row i, column j) is open. 
@@ -98,21 +116,14 @@ public class Percolation {
    * of [1, N] bounds
    */
   public boolean isFull(int i, int j) {
-    return uf.connected(sourceIndex, coord2index(i, j));
+    return ufFull.connected(sourceIndex, coord2index(i, j));
   }
 
   /**
    * Checks whether the system percolates. 
    */
   public boolean percolates() {
-    for (int i = 1; i <= N; ++i)
-      for (int j = 1; j <= N; ++j)
-        if (isOpen(1, i) 
-            && isOpen(N, j) 
-            && uf.connected(coord2index(1, i), coord2index(N, j))) {
-          return true;
-        }
-    return false;
+    return ufPercolates.connected(sourceIndex, sinkIndex);
   }
   
   /**
