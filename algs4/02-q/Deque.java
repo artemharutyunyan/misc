@@ -120,8 +120,11 @@ public class Deque<Item> implements Iterable<Item> {
     
     Item tmp = start.item;
     start = start.next;
+    
     if (n == 1) 
       end = null;
+    else 
+      start.prev = null;
 
     --n;
 
@@ -134,7 +137,6 @@ public class Deque<Item> implements Iterable<Item> {
       throw new java.util.NoSuchElementException("deque is empty");
   
     Item tmp = end.item;
-
     end = end.prev;
 
     if (n == 1)
