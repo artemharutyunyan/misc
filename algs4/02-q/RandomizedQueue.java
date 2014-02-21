@@ -31,7 +31,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
   
   private int s;
   private int capacity;
-  Item[] q;
+  private Item[] q;
 
   /* construct an empty randomized queue */ 
   public RandomizedQueue() {
@@ -86,12 +86,12 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     return q[StdRandom.uniform(0, s)];
   }
 
-  private class qIterator implements Iterator<Item> {
+  private class QIterator implements Iterator<Item> {
     private int[] seq;
     private int current;
     private int capacityIterator;
 
-    public qIterator() {
+    public QIterator() {
       current = 0;
       capacityIterator = size();
       seq = new int[capacityIterator];
@@ -129,7 +129,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
  
   /* return an independent iterator over items in random order */
   public Iterator<Item> iterator() {
-    return new qIterator();
+    return new QIterator();
   }
 
   /* expand the array to double the capacity */
@@ -157,7 +157,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
   /* create a new array and copy contents */
   private void copyQ(int newCapacity) {
-    Item[] tmpQ = (Item[] ) new Object[newCapacity];
+    Item[] tmpQ = (Item[]) new Object[newCapacity];
 
     for (int i = 0; i < s; ++i) 
       tmpQ[i] = q[i];
@@ -171,13 +171,15 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     for (int i = 0; i < n; ++i)
       rq.enqueue(i);
 
-    for (Integer z : rq) {
-      StdOut.printf("Got %d. size is %d, capacity is %d\n", z, rq.size(), rq.capacity); 
+    for (int z : rq) {
+      StdOut.printf("Got %d. size is %d, capacity is %d\n", z, rq.size(), 
+                    rq.capacity); 
     }
     StdOut.printf("\n");
 
-    for (Integer z : rq) {
-      StdOut.printf("Got %d. size is %d, capacity is %d\n", z, rq.size(), rq.capacity); 
+    for (int z : rq) {
+      StdOut.printf("Got %d. size is %d, capacity is %d\n", z, rq.size(), 
+                    rq.capacity); 
     }
     StdOut.printf("\n");
 

@@ -40,7 +40,7 @@ public class Subset {
     }
    
     Iterator it = rq.iterator();
-    while ( k > 0) {
+    while (k > 0) {
       StdOut.printf("%s\n", it.next());
       --k;
     }

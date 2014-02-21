@@ -27,44 +27,44 @@ For more information, please refer to <http://unlicense.org/>
 
 import java.util.Iterator;
 
-public class Dequeue<Item> implements Iterable<Item> {
-  private int n; // Number of elements in the dequeue
-  private DequeueNode<Item> start;
-  private DequeueNode<Item> end;
+public class Deque<Item> implements Iterable<Item> {
+  private int n; // Number of elements in the deque
+  private DequeNode<Item> start;
+  private DequeNode<Item> end;
 
-  private class DequeueNode<Item> {
-    private DequeueNode<Item> next;
-    private DequeueNode<Item> prev;
+  private class DequeNode<Item> {
+    private DequeNode<Item> next;
+    private DequeNode<Item> prev;
     private Item item;
 
     /* default constructor */ 
-    public DequeueNode() {
+    public DequeNode() {
       next = null;
       prev = null;
       item = null;
     } 
 
     /* initializing constructor */
-    public DequeueNode(Item i) {
+    public DequeNode(Item i) {
       item = i;
       next = null;
       prev = null;
     }
   }
 
-  /* construct an empty dequeue */
-  public Dequeue() {
+  /* construct an empty deque */
+  public Deque() {
     start = null;
     end = null;
     n = 0;
   }
 
-  /* is the dequeue empty */
+  /* is the deque empty */
   public boolean isEmpty() {
     return (n == 0);
   }
   
-  /* return number of items in the dequeue */
+  /* return number of items in the deque */
   public int size() {
     return n;
   }
@@ -74,7 +74,7 @@ public class Dequeue<Item> implements Iterable<Item> {
     if (item == null) 
      throw new NullPointerException("item can not be null"); 
 
-    DequeueNode<Item> tmpItem = new DequeueNode<Item>(item);  
+    DequeNode<Item> tmpItem = new DequeNode<Item>(item);  
 
     /* if this is the first item  */
     if (n == 0) {
@@ -96,7 +96,7 @@ public class Dequeue<Item> implements Iterable<Item> {
     if (item == null) 
       throw new NullPointerException("item can not be null"); 
   
-    DequeueNode<Item> tmpItem = new DequeueNode<Item>(item); 
+    DequeNode<Item> tmpItem = new DequeNode<Item>(item); 
   
     if (n == 0) {
       start = tmpItem;
@@ -116,7 +116,7 @@ public class Dequeue<Item> implements Iterable<Item> {
   /* delete and return the item at the front */
   public Item removeFirst() {
     if (n == 0)
-      throw new java.util.NoSuchElementException("dequeue is empty");
+      throw new java.util.NoSuchElementException("deque is empty");
     
     Item tmp = start.item;
     start = start.next;
@@ -131,22 +131,27 @@ public class Dequeue<Item> implements Iterable<Item> {
   /* delete and return the item at the end */
   public Item removeLast() {
     if (n == 0)
-      throw new java.util.NoSuchElementException("dequeue is empty");
+      throw new java.util.NoSuchElementException("deque is empty");
   
     Item tmp = end.item;
+
     end = end.prev;
+
     if (n == 1)
       start = null;
-    --n;
+    else
+      end.next = null;
 
+    --n;
+    
     return tmp;
   }
   
     
-  private class DequeueIterator implements Iterator<Item> {
-    private DequeueNode<Item> itCurrent;
+  private class DequeIterator implements Iterator<Item> {
+    private DequeNode<Item> itCurrent;
 
-    public DequeueIterator() {
+    public DequeIterator() {
       itCurrent = start;
     }
 
@@ -170,32 +175,35 @@ public class Dequeue<Item> implements Iterable<Item> {
 
   /* return an iterator over items in order from front to end */ 
   public Iterator<Item> iterator() {
-    return new DequeueIterator();
+    return new DequeIterator();
   } 
 
   /* unit testing */
   public static void main(String[] args) {
 
-    Dequeue<String> d = new Dequeue<String>();
-    d.addFirst("Hello");
-    d.addFirst("  ");
-    d.addFirst("World");
+    Deque<String> d = new Deque<String>();
+    d.addFirst("3");
+    d.addFirst("2");
+    d.addFirst("1");
+    d.addLast("4");
+    d.addLast("5");
 
-    if (args[0].equals("1")) {
-      StdOut.printf("Got %s\n", d.removeFirst());
-      StdOut.printf("Got %s\n", d.removeFirst());
-      StdOut.printf("Got %s\n", d.removeFirst());
-    } else {
-      for (String s : d) {
-        StdOut.printf("Iter %s\n", s);
-      }
+    StdOut.printf("Got %s\n", d.removeFirst());
+    StdOut.printf("Got %s\n", d.removeLast());
+ 
+    StdOut.printf("Got %s\n", d.removeLast());
+    StdOut.printf("Got %s\n", d.removeFirst());
+
+    
+    for (String s : d) {
+      StdOut.printf("Iter %s\n", s);
     }
 
     Iterator<String> di = d.iterator();
     try {
       di.remove();
     }  
-    catch (java.util.NoSuchElementException e) {
+    catch (UnsupportedOperationException e) { 
       StdOut.print("Got an expected exception\n");
     }
   }
