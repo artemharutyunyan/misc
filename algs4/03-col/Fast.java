@@ -27,12 +27,9 @@ For more information, please refer to <http://unlicense.org/>
 
 import java.util.Comparator;
 import java.util.Arrays;
-import java.util.TreeSet;
+import java.util.HashMap;
 
 public class Fast {
-
-  /* Going to hold arrays which have already been printed and drawn*/
-  private static TreeSet<String> cache = new TreeSet<String>(); 
 
   /* Comparator for sorting Point arrays in lexicographic order */
   private static class HorizontalOrder implements Comparator<Point> {
@@ -56,6 +53,9 @@ public class Fast {
   /* Entry point */
   public static void main(String[] args) {
 
+    /* Going to hold arrays which have already been printed and drawn*/
+    HashMap<String, Integer> cache = new HashMap<String, Integer>(); 
+
     StdDraw.setXscale(0, 32768);
     StdDraw.setYscale(0, 32768);
 
@@ -76,6 +76,9 @@ public class Fast {
       reference[i].draw();
     }
 
+    if (nPoints < 4) 
+      return;
+
     /* Reference array needed for iteration */
     Arrays.sort(reference, new HorizontalOrder());
 
@@ -93,7 +96,7 @@ public class Fast {
       for (int j = 0; j < nPoints; ++j) {
         slope[j] = reference[i].slopeTo(point[j]);
       }
-
+      
       /* Find (long enough) groups of collinear points */
       double currentSlope = slope[1];
       int count = 1;
@@ -117,10 +120,10 @@ public class Fast {
             Arrays.sort(tmp, new HorizontalOrder());
 
             /* Check whether we've seen it before */
-            
-            if (!cache.contains(tmp[0].toString() + tmp[1].toString())) {
+            String key = tmp[0].toString() + tmp[1].toString();
+            if (!cache.containsKey(key)) {
               /* Output and record for future reference */
-              cache.add(tmp[0].toString() + tmp[1].toString());
+              cache.put(key, 1);
               outputArray(tmp);
             }
           }
