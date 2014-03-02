@@ -27,12 +27,12 @@ For more information, please refer to <http://unlicense.org/>
 
 import java.util.Comparator;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.TreeSet;
 
 public class Fast {
 
   /* Going to hold arrays which have already been printed and drawn*/
-  private static HashMap<Point, Point> cache = new HashMap<Point, Point>();
+  private static TreeSet<String> cache = new TreeSet<String>(); 
 
   /* Comparator for sorting Point arrays in lexicographic order */
   private static class HorizontalOrder implements Comparator<Point> {
@@ -46,11 +46,11 @@ public class Fast {
     for (int i = 0; i < point.length; ++i) {
       if (i != 0) { 
         StdOut.printf(" -> ");
-        point[i - 1].drawTo(point[i]);
       }
       StdOut.printf("%s", point[i]);
     }
     StdOut.printf("\n");
+    point[0].drawTo(point[point.length - 1]);
   }
 
   /* Entry point */
@@ -73,6 +73,7 @@ public class Fast {
       int x = in.readInt();
       int y = in.readInt();
       reference[i] = new Point(x, y);
+      reference[i].draw();
     }
 
     /* Reference array needed for iteration */
@@ -97,31 +98,36 @@ public class Fast {
       double currentSlope = slope[1];
       int count = 1;
 
-      for (int j = 2; j < nPoints; ++j) {
-        if (currentSlope == slope[j])
+      /* Extra cycle for when the last point needs to be included */
+      for (int j = 2; j <= nPoints; ++j) {
+
+        /* Make sure we always enter the else branch at the end */
+        if (j < nPoints && currentSlope == slope[j])
           ++count;
-        else {
+        else { 
           if (count >= 3) {
-            /* Create the temporary array and sort it */
+            /* Create a temporary array and sort it */
             Point[] tmp = new Point[count + 1];
             
-            for (int k = 0; k < count; ++k) 
+            for (int k = 0; k < count; ++k) { 
               tmp[k] = point[j - k - 1];
+            }
             tmp[count] = point[0];
 
             Arrays.sort(tmp, new HorizontalOrder());
-          
+
             /* Check whether we've seen it before */
-            Point second = cache.get(tmp[0]); 
-            if (second == null || second != tmp[1]) {
+            
+            if (!cache.contains(tmp[0].toString() + tmp[1].toString())) {
               /* Output and record for future reference */
-              cache.put(tmp[0], tmp[1]);
+              cache.add(tmp[0].toString() + tmp[1].toString());
               outputArray(tmp);
             }
           }
 
           count = 1;
-          currentSlope = slope[j];
+          if (j < nPoints) 
+            currentSlope = slope[j];
         }
       }
     }

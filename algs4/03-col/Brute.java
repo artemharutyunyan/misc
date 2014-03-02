@@ -37,8 +37,8 @@ public class Brute {
   }
   public static void main(String[] args) {
 
-    //StdDraw.setXscale(0, 32768);
-    //StdDraw.setYscale(0, 32768);
+    StdDraw.setXscale(0, 32768);
+    StdDraw.setYscale(0, 32768);
 
     /* Read the number of points; create input array */
     In in = new In(args[0]);    
@@ -51,7 +51,7 @@ public class Brute {
       int x = in.readInt();
       int y = in.readInt();
       point[i] = new Point(x, y);
-      //point[i].draw();
+      point[i].draw();
     }
     Arrays.sort(point, new HorizontalOrder());
 
@@ -66,6 +66,7 @@ public class Brute {
             if (slopeJ == slopeK && slopeJ == slopeM) {
               StdOut.printf("%s -> %s -> %s -> %s\n", 
                             point[i], point[j], point[k], point[m]);
+              point[i].drawTo(point[m]);
             }
           }
   }
