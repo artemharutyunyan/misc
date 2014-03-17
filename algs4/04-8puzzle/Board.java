@@ -26,7 +26,6 @@ For more information, please refer to <http://unlicense.org/>
 */
 
 import java.util.Iterator;
-import java.util.Arrays;
 
 public class Board {
   private int d; 
@@ -34,7 +33,7 @@ public class Board {
 
   // Iterable board 
   private class BoardIterable implements Iterable<Board> {
-    Board b;
+    private Board b;
 
     public BoardIterable(Board board) {
       b = board;
@@ -49,11 +48,11 @@ public class Board {
   private class BoardIterator implements Iterator<Board> {
     private int n;             // Current step   
     private int nPossible;     // Number of possible steps (eiter 4 or 2)
-    private boolean[] moves = new boolean[4];  // Allowed moves (up, down, left, right)
+    private boolean[] moves = new boolean[4];  // Legal moves (up, down, left, right)
     private int index;         // Current step index
-    private int i_empty;
-    private int j_empty;
-    Board start; 
+    private int iEmpty;
+    private int jEmpty;
+    private Board start; 
 
     public BoardIterator(Board board) {
       n = 0;
@@ -135,8 +134,8 @@ public class Board {
               index = 0;
             }
 
-            i_empty = i;
-            j_empty = j;
+            iEmpty = i;
+            jEmpty = j;
             //for (i = 0; i < 4; ++i) StdOut.printf("%b ", moves[i]);
             //StdOut.println();
             return;
@@ -155,26 +154,26 @@ public class Board {
       //StdOut.printf("array is\n%s", tmp.toString());
 
       if (index == 0) { // Up
-        tmp.b[i_empty][j_empty] = tmp.b[i_empty - 1][j_empty];
-        tmp.b[i_empty - 1][j_empty] = 0;
+        tmp.b[iEmpty][jEmpty] = tmp.b[iEmpty - 1][jEmpty];
+        tmp.b[iEmpty - 1][jEmpty] = 0;
       }
       else if (index == 1) { // Down 
-        tmp.b[i_empty][j_empty] = tmp.b[i_empty + 1][j_empty];
-        tmp.b[i_empty + 1][j_empty] = 0;
+        tmp.b[iEmpty][jEmpty] = tmp.b[iEmpty + 1][jEmpty];
+        tmp.b[iEmpty + 1][jEmpty] = 0;
       }
       else if (index == 2) { // Left 
-        tmp.b[i_empty][j_empty] = tmp.b[i_empty][j_empty - 1];
-        tmp.b[i_empty][j_empty - 1] = 0;
+        tmp.b[iEmpty][jEmpty] = tmp.b[iEmpty][jEmpty - 1];
+        tmp.b[iEmpty][jEmpty - 1] = 0;
       }
      else if (index == 3) { // Right 
-        tmp.b[i_empty][j_empty] = tmp.b[i_empty][j_empty + 1];
-        tmp.b[i_empty][j_empty + 1] = 0;
+        tmp.b[iEmpty][jEmpty] = tmp.b[iEmpty][jEmpty + 1];
+        tmp.b[iEmpty][jEmpty + 1] = 0;
       }
 
       // Advance index to the next move position 
       ++index;
       while (index < 4) { 
-        if (moves[index] == true) break;
+        if (moves[index]) break;
         else ++index;
       }
       //StdOut.printf("array is\n%s", tmp.toString());
@@ -184,7 +183,9 @@ public class Board {
       return tmp;
     }
     
-    public void remove() {}
+    public void remove() {
+      throw new UnsupportedOperationException("operation not supported");
+    }
   }
 
   // construct a board from an N-by-N array of blocks
@@ -220,10 +221,9 @@ public class Board {
     for (int i = 0; i < d; ++i)
       for (int j = 0; j < d; ++j) {
         if (b[i][j] != 0) {
-          int i_goal = (b[i][j] - 1) / d;
-          int j_goal = (b[i][j] - 1) % d;
-          //StdOut.printf("pos for %d is %d %d\n", b[i][j], i_goal, j_goal);
-          distance += (abs(i - i_goal) +  abs(j - j_goal));
+          int iGoal = (b[i][j] - 1) / d;
+          int jGoal = (b[i][j] - 1) % d;
+          distance += (abs(i - iGoal) +  abs(j - jGoal));
         }
       }
     return distance;
@@ -274,15 +274,13 @@ public class Board {
 
   // string representation of the board (in the output format specified below)
   public String toString() { 
-    String s = new String();
-    
     /* Lame but straigthforward */
-    s += d + "\n";
+    String s = d + "\n";
     for (int i = 0; i < d; ++i) {
       s += ' ';
       for (int j = 0; j < d; ++j) {
         if (j != 0) s += "  "; 
-        s += (new Integer(b[i][j])).toString();
+        s += Integer.valueOf(b[i][j]);
       }
       s += "\n";
     }   
@@ -319,7 +317,10 @@ public class Board {
   //
   // Private functions 
   private int abs(int i) {
-    return i < 0 ? -i:i;
+    if (i < 0) 
+      return -i;
+    else 
+      return i;
   }
 }
 

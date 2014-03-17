@@ -26,39 +26,39 @@ For more information, please refer to <http://unlicense.org/>
 */
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 public class Solver {
   private boolean isSolvable;
   private boolean ranOnce;
   private Board board;
-  private String solutionSeq;
   private int nMoves;
+  private LinkedList<Board> solutionSeq;
 
   private static class CBoard implements Comparable<CBoard> {
     private Board b;
     private int nSteps;
 
-    public int compareTo(CBoard that) {
-      return (this.b.manhattan() + this.nSteps) -   
-             (that.b.manhattan() + that.nSteps);   
-    }
-
     public CBoard(Board board, int n) {
-      b = board;
       nSteps = n;
+      b = board;
     }
 
+    public int compareTo(CBoard that) {
+      return (this.b.manhattan() + this.nSteps) 
+             - (that.b.manhattan() + that.nSteps);   
+    }
     public int getSteps() {
       return nSteps;
     }
   }
-    
+  
   // find a solution to the initial board (using the A* algorithm)
   public Solver(Board initial) {
     isSolvable = false;
     ranOnce = false;
     board = initial;
-    solutionSeq = new String();
+    solutionSeq = new LinkedList<Board>();
     nMoves = 0;
   }
 
@@ -70,32 +70,35 @@ public class Solver {
 
   // min number of moves to solve initial board; -1 if no solution
   public int moves() {
+    if (!ranOnce) solve();
     return nMoves;
   }
 
   // sequence of boards in a shortest solution; null if no solution     
   public Iterable<Board> solution() {
-    return null;
+    if (!ranOnce) solve(); 
+    return solutionSeq;
   }     
 
   private void solve() {
-
+    ranOnce = true;
     HashMap<String, Boolean> seen = new HashMap<String, Boolean>();
-    HashMap<String, Boolean> seen_twin = new HashMap<String, Boolean>();
+    HashMap<String, Boolean> seenTwin = new HashMap<String, Boolean>();
     Board twin = board.twin();
 
     int n = 0;
     MinPQ<CBoard> pq = new MinPQ<CBoard>();
-    MinPQ<CBoard> pq_twin = new MinPQ<CBoard>();
+    MinPQ<CBoard> pqTwin = new MinPQ<CBoard>();
 
     pq.insert(new CBoard(board, n)); 
-    pq_twin.insert(new CBoard(twin, n)); 
+    pqTwin.insert(new CBoard(twin, n)); 
 
     while (true) {
       CBoard cb = pq.delMin();             
-      CBoard cb_twin = pq_twin.delMin();
+      CBoard cbTwin = pqTwin.delMin();
 
-      solutionSeq += cb.b.toString();
+      solutionSeq.add(cb.b);
+
       if (cb.b.hamming() == 0) { // Found solution
         // Solvable 
         isSolvable = true;
@@ -104,7 +107,7 @@ public class Solver {
       } 
 
       // Twin is solvable 
-      if (cb_twin.b.hamming() == 0) {
+      if (cbTwin.b.hamming() == 0) {
         isSolvable = false;
         break;
       }
@@ -117,11 +120,11 @@ public class Solver {
           }
       }
 
-      for (Board it: cb_twin.b.neighbors()) {
+      for (Board it: cbTwin.b.neighbors()) {
         // If this is the first time 
-        if (!seen_twin.containsKey(it.toString())) {
-            pq_twin.insert(new CBoard(it, n));
-            seen_twin.put(it.toString(), true);
+        if (!seenTwin.containsKey(it.toString())) {
+            pqTwin.insert(new CBoard(it, n));
+            seenTwin.put(it.toString(), true);
           }
       }
       ++n; // Increase move counter
@@ -140,9 +143,11 @@ public class Solver {
 
     Board initial = new Board(blocks);
     Solver s = new Solver(initial);
-    if(s.isSolvable()) {
-      StdOut.printf("Minimum number of moves = %d\n", s.nMoves);
-      StdOut.printf("%s\n", s.solutionSeq);
+    if (s.isSolvable()) {
+      StdOut.printf("Minimum number of moves = %d\n", s.moves());
+      for (Board b : s.solution()) {
+        StdOut.printf("%s", b.toString());
+      }
     }
     else
       StdOut.print("No solution possible\n");
