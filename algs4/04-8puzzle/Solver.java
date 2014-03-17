@@ -25,28 +25,128 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <http://unlicense.org/>
 */
 
+import java.util.HashMap;
+
 public class Solver {
-    // find a solution to the initial board (using the A* algorithm)
-    public Solver(Board initial) {}
+  private boolean isSolvable;
+  private boolean ranOnce;
+  private Board board;
+  private String solutionSeq;
+  private int nMoves;
 
-    // is the initial board solvable
-    public boolean isSolvable() {
-      return true;
+  private static class CBoard implements Comparable<CBoard> {
+    private Board b;
+    private int nSteps;
+
+    public int compareTo(CBoard that) {
+      return (this.b.manhattan() + this.nSteps) -   
+             (that.b.manhattan() + that.nSteps);   
     }
 
-    // min number of moves to solve initial board; -1 if no solution
-    public int moves() {
-      return -1;
+    public CBoard(Board board, int n) {
+      b = board;
+      nSteps = n;
     }
 
-    // sequence of boards in a shortest solution; null if no solution     
-    public Iterable<Board> solution() {
-      return null;
-    }     
-   
-    // solve a slider puzzle 
-    public static void main(String[] args) {
-      
-    } 
+    public int getSteps() {
+      return nSteps;
+    }
+  }
+    
+  // find a solution to the initial board (using the A* algorithm)
+  public Solver(Board initial) {
+    isSolvable = false;
+    ranOnce = false;
+    board = initial;
+    solutionSeq = new String();
+    nMoves = 0;
+  }
+
+  // is the initial board solvable
+  public boolean isSolvable() {
+    if (!ranOnce) solve();
+    return isSolvable;
+  }
+
+  // min number of moves to solve initial board; -1 if no solution
+  public int moves() {
+    return nMoves;
+  }
+
+  // sequence of boards in a shortest solution; null if no solution     
+  public Iterable<Board> solution() {
+    return null;
+  }     
+
+  private void solve() {
+
+    HashMap<String, Boolean> seen = new HashMap<String, Boolean>();
+    HashMap<String, Boolean> seen_twin = new HashMap<String, Boolean>();
+    Board twin = board.twin();
+
+    int n = 0;
+    MinPQ<CBoard> pq = new MinPQ<CBoard>();
+    MinPQ<CBoard> pq_twin = new MinPQ<CBoard>();
+
+    pq.insert(new CBoard(board, n)); 
+    pq_twin.insert(new CBoard(twin, n)); 
+
+    while (true) {
+      CBoard cb = pq.delMin();             
+      CBoard cb_twin = pq_twin.delMin();
+
+      solutionSeq += cb.b.toString();
+      if (cb.b.hamming() == 0) { // Found solution
+        // Solvable 
+        isSolvable = true;
+        nMoves = n;
+        break;
+      } 
+
+      // Twin is solvable 
+      if (cb_twin.b.hamming() == 0) {
+        isSolvable = false;
+        break;
+      }
+
+      for (Board it : cb.b.neighbors()) {
+        // If this is the first time
+        if (!seen.containsKey(it.toString())) {
+            pq.insert(new CBoard(it, n));
+            seen.put(it.toString(), true);
+          }
+      }
+
+      for (Board it: cb_twin.b.neighbors()) {
+        // If this is the first time 
+        if (!seen_twin.containsKey(it.toString())) {
+            pq_twin.insert(new CBoard(it, n));
+            seen_twin.put(it.toString(), true);
+          }
+      }
+      ++n; // Increase move counter
+    }
+  }
+
+  // solve a slider puzzle 
+  public static void main(String[] args) {
+    // create initial board from file
+    In in = new In(args[0]);
+    int N = in.readInt();
+    int[][] blocks = new int[N][N];
+    for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++)
+        blocks[i][j] = in.readInt();
+
+    Board initial = new Board(blocks);
+    Solver s = new Solver(initial);
+    if(s.isSolvable()) {
+      StdOut.printf("Minimum number of moves = %d\n", s.nMoves);
+      StdOut.printf("%s\n", s.solutionSeq);
+    }
+    else
+      StdOut.print("No solution possible\n");
+
+  } 
 }
 

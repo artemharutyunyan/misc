@@ -25,15 +25,176 @@ OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <http://unlicense.org/>
 */
 
+import java.util.Iterator;
+import java.util.Arrays;
+
 public class Board {
   private int d; 
   private int[][] b;
+
+  // Iterable board 
+  private class BoardIterable implements Iterable<Board> {
+    Board b;
+
+    public BoardIterable(Board board) {
+      b = board;
+    }
+
+    public Iterator<Board> iterator() {
+      return new BoardIterator(b);
+    }
+  }
+
+  // Board iterator
+  private class BoardIterator implements Iterator<Board> {
+    private int n;             // Current step   
+    private int nPossible;     // Number of possible steps (eiter 4 or 2)
+    private boolean[] moves = new boolean[4];  // Allowed moves (up, down, left, right)
+    private int index;         // Current step index
+    private int i_empty;
+    private int j_empty;
+    Board start; 
+
+    public BoardIterator(Board board) {
+      n = 0;
+      start = board;
+
+      for (int i = 0; i < d; ++i)
+        for (int j = 0; j < d; ++j) {
+          if (board.b[i][j] == 0) {
+
+            // Upper left corner
+            if (i == 0 && j == 0) { 
+              moves[1] = true; // down is possible
+              moves[3] = true; // right is possible
+              nPossible = 2;
+              index = 1;
+              //StdOut.println("upper left\n");
+            }
+            // Upper right corner 
+            else if (i == 0 && j == (d - 1)) {
+              moves[1] = true; // down is possible
+              moves[2] = true; // left is possible
+              nPossible = 2;
+              index = 1;
+              //StdOut.println("upper right\n");
+            }
+            // Lower left corner 
+            else if (i == (d - 1) && j == 0) {
+              moves[0] = true; // up is possible
+              moves[3] = true; // right is possible
+              nPossible = 2;
+              index = 0;
+              //StdOut.println("lower left\n");
+            }
+            // Lower right corner 
+            else if (i == (d - 1) && j == (d - 1)) {
+              moves[0] = true; // up is possible
+              moves[2] = true; // left is possible
+              nPossible = 2;
+              index = 0;
+              //StdOut.println("lower right\n");
+            }
+            // Left column 
+            else if (j == 0) {
+              moves[0] = true; // up is possible
+              moves[1] = true; // down is possible
+              moves[3] = true; // right is possible
+              nPossible = 3;
+              index = 0;
+            }
+            // Right column 
+            else if (j == (d - 1)) {
+              moves[0] = true; // up is possible
+              moves[1] = true; // down is possible
+              moves[2] = true; // left 
+              nPossible = 3;
+              index = 0;
+            }
+            // Top row 
+            else if (i == 0) {
+              moves[1] = true; // down is possible
+              moves[2] = true; // left is possible 
+              moves[3] = true; // right is possible
+              nPossible = 3;
+              index = 1;
+            }
+            // Bottom row 
+            else if (i == (d - 1)) {
+              moves[0] = true; // up is possible
+              moves[2] = true; // left is possible 
+              moves[3] = true; // right is possible
+              nPossible = 3;
+              index = 0;
+            }
+            // All moves possible
+            else {
+              for (int k = 0; k < 4; ++k)
+                moves[k] = true;
+              nPossible = 4;
+              index = 0;
+            }
+
+            i_empty = i;
+            j_empty = j;
+            //for (i = 0; i < 4; ++i) StdOut.printf("%b ", moves[i]);
+            //StdOut.println();
+            return;
+          }
+        }
+    }
+
+    public boolean hasNext() {
+      return n < nPossible; 
+    }
+
+    public Board next() {
+
+      //StdOut.printf("index is %d\n", index);
+      Board tmp = new Board(start.b);
+      //StdOut.printf("array is\n%s", tmp.toString());
+
+      if (index == 0) { // Up
+        tmp.b[i_empty][j_empty] = tmp.b[i_empty - 1][j_empty];
+        tmp.b[i_empty - 1][j_empty] = 0;
+      }
+      else if (index == 1) { // Down 
+        tmp.b[i_empty][j_empty] = tmp.b[i_empty + 1][j_empty];
+        tmp.b[i_empty + 1][j_empty] = 0;
+      }
+      else if (index == 2) { // Left 
+        tmp.b[i_empty][j_empty] = tmp.b[i_empty][j_empty - 1];
+        tmp.b[i_empty][j_empty - 1] = 0;
+      }
+     else if (index == 3) { // Right 
+        tmp.b[i_empty][j_empty] = tmp.b[i_empty][j_empty + 1];
+        tmp.b[i_empty][j_empty + 1] = 0;
+      }
+
+      // Advance index to the next move position 
+      ++index;
+      while (index < 4) { 
+        if (moves[index] == true) break;
+        else ++index;
+      }
+      //StdOut.printf("array is\n%s", tmp.toString());
+      //StdOut.printf("next index is %d\n", index);
+     
+      ++n;
+      return tmp;
+    }
+    
+    public void remove() {}
+  }
 
   // construct a board from an N-by-N array of blocks
   // (where blocks[i][j] = block in row i, column j)
   public Board(int[][] blocks) {
       d = blocks.length;
-      b = blocks;
+      b = new int[d][d]; 
+      for (int i = 0; i < d; ++i)
+        for (int j = 0; j < d; ++j) 
+         b[i][j] = blocks[i][j];    
   }
 
   // board dimension N
@@ -47,7 +208,7 @@ public class Board {
 
       for (int i = 0; i < d; ++i)
         for (int j = 0; j < d; ++j)
-          if ((b[i][j]) != 0 && (b[i][j] != i * d + j))
+          if ((b[i][j]) != 0 && (b[i][j] != (1 + i * d + j)))
             ++distance; 
     return distance; 
   }
@@ -58,9 +219,12 @@ public class Board {
     
     for (int i = 0; i < d; ++i)
       for (int j = 0; j < d; ++j) {
-        int i_goal = b[i][j] / d;
-        int j_goal = b[i][j] % d;
-        distance += (abs(i - i_goal) +  abs(j - j_goal));
+        if (b[i][j] != 0) {
+          int i_goal = (b[i][j] - 1) / d;
+          int j_goal = (b[i][j] - 1) % d;
+          //StdOut.printf("pos for %d is %d %d\n", b[i][j], i_goal, j_goal);
+          distance += (abs(i - i_goal) +  abs(j - j_goal));
+        }
       }
     return distance;
   }                
@@ -71,9 +235,13 @@ public class Board {
   // a board obtained by exchanging two adjacent blocks in the same row
   public Board twin() { 
     int row = 0;
-    int[][] twin = b;
+    int[][] twin = new int[d][d];
     if (twin[row][0] == 0 || twin[row][1] == 0)
       ++row;
+
+    for (int i = 0; i < d; ++i)
+      for (int j = 0; j < d; ++j)
+        twin[i][j] = b[i][j];
 
     int tmp = twin[row][0];
     twin[row][0] = twin[row][1];
@@ -99,25 +267,54 @@ public class Board {
   }        
 
   // all neighboring boards
-  public Iterable<Board> neighbors() { return null;}     
+  public Iterable<Board> neighbors() { 
+    return new BoardIterable(this);
+  }     
+
 
   // string representation of the board (in the output format specified below)
   public String toString() { 
     String s = new String();
     
     /* Lame but straigthforward */
+    s += d + "\n";
     for (int i = 0; i < d; ++i) {
+      s += ' ';
       for (int j = 0; j < d; ++j) {
-        if (j != 0) s += ' '; 
+        if (j != 0) s += "  "; 
         s += (new Integer(b[i][j])).toString();
       }
       s += "\n";
     }   
+    s += "\n";
     return s;
   }
   
   // main 
-  public static void main(String[] args) {}
+  /* public static void main(String[] args) {
+    // create initial board from file
+        In in = new In(args[0]);
+        int N = in.readInt();
+        int[][] blocks = new int[N][N];
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
+                blocks[i][j] = in.readInt();
+        Board initial = new Board(blocks);
+
+
+        StdOut.printf("%s", initial.toString());
+        StdOut.printf("hamming %d\n", initial.hamming());
+        StdOut.printf("manhattan %s\n", initial.manhattan());
+        StdOut.printf("isGoal %b\n", initial.isGoal());
+        
+        for (Board ib : initial.neighbors()) {
+          StdOut.printf("%s", ib.toString());
+          StdOut.println("");
+        }
+
+        Board t = initial.twin();
+        StdOut.printf("%s", t.toString());
+  } */
   
   //
   // Private functions 
