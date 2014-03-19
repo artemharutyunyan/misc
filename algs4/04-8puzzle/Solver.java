@@ -98,11 +98,14 @@ public class Solver {
   private void solve() {
     ranOnce = true;
     HashMap<String, Boolean> seen = new HashMap<String, Boolean>();
-    seen.put(board.toString(), true);
+    // Using a string representation of the board + number of steps as a key,
+    // We accept a duplicate position in case we came to it using via a shorter 
+    // path.
+    seen.put(board.toString() + 0, true);
 
     HashMap<String, Boolean> seenTwin = new HashMap<String, Boolean>();
     Board twin = board.twin();
-    seenTwin.put(twin.toString(), true);
+    seenTwin.put(twin.toString() + 0, true);
 
     //int n = 0;
     MinPQ<CBoard> pq = new MinPQ<CBoard>();
@@ -138,22 +141,22 @@ public class Solver {
 
       for (Board it : cb.b.neighbors()) {
         // If this is the first time
-        if (!seen.containsKey(it.toString())) {
+        if (!seen.containsKey(it.toString() + cb.nSteps)) {
             CBoard tmp = new CBoard(it, cb.nSteps + 1);
             tmp.setPrev(cb);
             pq.insert(tmp);
             //StdOut.printf("Pushed: %s", it.toString());
-            seen.put(it.toString(), true);
+            seen.put(it.toString() + cb.nSteps, true);
           }
       }
 
       for (Board it: cbTwin.b.neighbors()) {
         // If this is the first time 
-        if (!seenTwin.containsKey(it.toString())) {
+        if (!seenTwin.containsKey(it.toString() + cbTwin.nSteps)) {
             CBoard tmp = new CBoard(it, cbTwin.nSteps + 1);
             tmp.setPrev(cbTwin);
             pqTwin.insert(tmp);
-            seenTwin.put(it.toString(), true);
+            seenTwin.put(it.toString() + cbTwin.nSteps, true);
           }
       }
     }
