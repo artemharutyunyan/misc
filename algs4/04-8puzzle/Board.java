@@ -236,7 +236,7 @@ public class Board {
   public Board twin() { 
     int row = 0;
     int[][] twin = new int[d][d];
-    if (twin[row][0] == 0 || twin[row][1] == 0)
+    if (b[row][0] == 0 || b[row][1] == 0)
       ++row;
 
     for (int i = 0; i < d; ++i)
@@ -287,9 +287,10 @@ public class Board {
     s += "\n";
     return s;
   }
-  
+ 
+  /*
   // main 
-  /* public static void main(String[] args) {
+  public static void main(String[] args) {
     // create initial board from file
         In in = new In(args[0]);
         int N = in.readInt();
@@ -300,15 +301,15 @@ public class Board {
         Board initial = new Board(blocks);
 
 
-        StdOut.printf("%s", initial.toString());
-        StdOut.printf("hamming %d\n", initial.hamming());
-        StdOut.printf("manhattan %s\n", initial.manhattan());
-        StdOut.printf("isGoal %b\n", initial.isGoal());
-        
-        for (Board ib : initial.neighbors()) {
-          StdOut.printf("%s", ib.toString());
-          StdOut.println("");
-        }
+//        StdOut.printf("%s", initial.toString());
+//        StdOut.printf("hamming %d\n", initial.hamming());
+//        StdOut.printf("manhattan %s\n", initial.manhattan());
+//        StdOut.printf("isGoal %b\n", initial.isGoal());
+//        
+//        for (Board ib : initial.neighbors()) {
+//         StdOut.printf("%s", ib.toString());
+//          StdOut.println("");
+//        }
 
         Board t = initial.twin();
         StdOut.printf("%s", t.toString());

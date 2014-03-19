@@ -38,11 +38,14 @@ public class Solver {
   private static class CBoard implements Comparable<CBoard> {
     private Board b;
     private int nSteps;
+    private CBoard prev;
 
     public CBoard(Board board, int n) {
       nSteps = n;
       b = board;
+      prev = null;
     }
+
 
     public int compareTo(CBoard that) {
       return (this.b.manhattan() + this.nSteps) 
@@ -50,6 +53,14 @@ public class Solver {
     }
     public int getSteps() {
       return nSteps;
+    }
+
+    public void setPrev(CBoard p) {
+      prev = p;
+    }
+
+    public CBoard getPrev() {
+      return prev;
     }
   }
   
@@ -59,7 +70,7 @@ public class Solver {
     ranOnce = false;
     board = initial;
     solutionSeq = new LinkedList<Board>();
-    nMoves = 0;
+    nMoves = -1;
   }
 
   // is the initial board solvable
@@ -77,32 +88,45 @@ public class Solver {
   // sequence of boards in a shortest solution; null if no solution     
   public Iterable<Board> solution() {
     if (!ranOnce) solve(); 
-    return solutionSeq;
+
+    if (isSolvable)
+      return solutionSeq;
+
+    return null;
   }     
 
   private void solve() {
     ranOnce = true;
     HashMap<String, Boolean> seen = new HashMap<String, Boolean>();
+    seen.put(board.toString(), true);
+
     HashMap<String, Boolean> seenTwin = new HashMap<String, Boolean>();
     Board twin = board.twin();
+    seenTwin.put(twin.toString(), true);
 
-    int n = 0;
+    //int n = 0;
     MinPQ<CBoard> pq = new MinPQ<CBoard>();
     MinPQ<CBoard> pqTwin = new MinPQ<CBoard>();
 
-    pq.insert(new CBoard(board, n)); 
-    pqTwin.insert(new CBoard(twin, n)); 
+    pq.insert(new CBoard(board, 0)); 
+    pqTwin.insert(new CBoard(twin, 0)); 
 
     while (true) {
       CBoard cb = pq.delMin();             
       CBoard cbTwin = pqTwin.delMin();
 
-      solutionSeq.add(cb.b);
+      //StdOut.printf("Popped out: %s", cb.b.toString());
 
       if (cb.b.hamming() == 0) { // Found solution
         // Solvable 
         isSolvable = true;
-        nMoves = n;
+          
+        // Iterate over the chain of boards which led to the solution
+        do {
+          solutionSeq.addFirst(cb.b);
+          cb = cb.getPrev();
+          ++nMoves;
+        } while (cb != null);
         break;
       } 
 
@@ -115,7 +139,10 @@ public class Solver {
       for (Board it : cb.b.neighbors()) {
         // If this is the first time
         if (!seen.containsKey(it.toString())) {
-            pq.insert(new CBoard(it, n));
+            CBoard tmp = new CBoard(it, cb.nSteps + 1);
+            tmp.setPrev(cb);
+            pq.insert(tmp);
+            //StdOut.printf("Pushed: %s", it.toString());
             seen.put(it.toString(), true);
           }
       }
@@ -123,35 +150,38 @@ public class Solver {
       for (Board it: cbTwin.b.neighbors()) {
         // If this is the first time 
         if (!seenTwin.containsKey(it.toString())) {
-            pqTwin.insert(new CBoard(it, n));
+            CBoard tmp = new CBoard(it, cbTwin.nSteps + 1);
+            tmp.setPrev(cbTwin);
+            pqTwin.insert(tmp);
             seenTwin.put(it.toString(), true);
           }
       }
-      ++n; // Increase move counter
     }
   }
 
-  // solve a slider puzzle 
   public static void main(String[] args) {
     // create initial board from file
     In in = new In(args[0]);
     int N = in.readInt();
     int[][] blocks = new int[N][N];
     for (int i = 0; i < N; i++)
-      for (int j = 0; j < N; j++)
-        blocks[i][j] = in.readInt();
-
+        for (int j = 0; j < N; j++)
+            blocks[i][j] = in.readInt();
     Board initial = new Board(blocks);
-    Solver s = new Solver(initial);
-    if (s.isSolvable()) {
-      StdOut.printf("Minimum number of moves = %d\n", s.moves());
-      for (Board b : s.solution()) {
-        StdOut.printf("%s", b.toString());
-      }
-    }
-    else
-      StdOut.print("No solution possible\n");
 
-  } 
+    // solve the puzzle
+    Solver solver = new Solver(initial);
+
+    // print solution to standard output
+    if (!solver.isSolvable())
+        StdOut.println("No solution possible");
+    else {
+        StdOut.println("Minimum number of moves = " + solver.moves());
+        for (Board board : solver.solution())
+            StdOut.println(board);
+    }
+}
+
+  
 }
 
