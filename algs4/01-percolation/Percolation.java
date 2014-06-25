@@ -38,6 +38,9 @@ public class Percolation {
    * @param N size of a grid
    */
   public Percolation(int n) {
+    if (n < 1)
+      throw new IllegalArgumentException("illegal input parameters");
+
     N = n;
     /* Initialize the grid */
     grid = new boolean[N*N];    
